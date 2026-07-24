@@ -6,21 +6,22 @@ import datetime
 
 itineraries_bp = Blueprint('itineraries', __name__)
 
+
 @itineraries_bp.route('/itineraries', methods=['POST'])
 @token_required
 def create_itinerary(current_user):
     """Crée un nouvel itinéraire"""
     data = request.get_json()
-    
+
     # Validation
     required_fields = ['title', 'destinations', 'start_date', 'end_date']
     for field in required_fields:
         if field not in data:
             return jsonify({'error': f'Champ requis manquant: {field}'}), 400
-    
-    # Charge les itinéraires existants
+
+    # Charge les itinéraires existants (c'est TOUJOURS une liste maintenant)
     itineraries = load_itineraries()
-    
+
     # Crée le nouvel itinéraire
     itinerary = {
         'id': str(uuid.uuid4()),
@@ -33,31 +34,26 @@ def create_itinerary(current_user):
         'created_at': datetime.datetime.utcnow().isoformat(),
         'updated_at': datetime.datetime.utcnow().isoformat()
     }
-    
+
     # Ajoute à la liste
-    if isinstance(itineraries, dict):
-        itineraries = [itineraries] if itineraries else []
-    
     itineraries.append(itinerary)
     save_itineraries(itineraries)
-    
+
     return jsonify({
         'message': 'Itinéraire créé avec succès',
         'itinerary': itinerary
     }), 201
+
 
 @itineraries_bp.route('/itineraries', methods=['GET'])
 @token_required
 def list_itineraries(current_user):
     """Liste tous les itinéraires de l'utilisateur connecté"""
     itineraries = load_itineraries()
-    
-    # Filtre par utilisateur
-    if isinstance(itineraries, list):
-        user_itineraries = [i for i in itineraries if i.get('user') == current_user]
-    else:
-        user_itineraries = []
-    
+
+    # Filtre par utilisateur (itineraries est toujours une liste)
+    user_itineraries = [i for i in itineraries if i.get('user') == current_user]
+
     return jsonify({
         'count': len(user_itineraries),
         'itineraries': user_itineraries

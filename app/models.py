@@ -11,15 +11,15 @@ USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 ITINERARIES_FILE = os.path.join(DATA_DIR, 'itineraries.json')
 DESTINATIONS_FILE = os.path.join(DATA_DIR, 'destinations.json')
 
-def load_data(filename):
+def load_data(filename, default=None):
     """Charge les données depuis un fichier JSON"""
+    if default is None:
+        default = {}
     try:
         with open(filename, 'r') as f:
             return json.load(f)
-    except FileNotFoundError:
-        return [] if 'destinations' not in filename else {}
-    except json.JSONDecodeError:
-        return [] if 'destinations' not in filename else {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default
 
 def save_data(data, filename):
     """Sauvegarde les données dans un fichier JSON"""
@@ -31,16 +31,18 @@ def save_data(data, filename):
 # Fonctions spécifiques pour chaque type de données
 
 def load_users():
-    return load_data(USERS_FILE)
+    """Charge les utilisateurs - retourne TOUJOURS un dictionnaire"""
+    return load_data(USERS_FILE, default={})
 
 def save_users(users):
     save_data(users, USERS_FILE)
 
 def load_itineraries():
-    return load_data(ITINERARIES_FILE)
+    """Charge les itinéraires - retourne TOUJOURS une liste"""
+    return load_data(ITINERARIES_FILE, default=[])
 
 def save_itineraries(itineraries):
     save_data(itineraries, ITINERARIES_FILE)
 
 def load_destinations():
-    return load_data(DESTINATIONS_FILE)
+    return load_data(DESTINATIONS_FILE, default={})
