@@ -1,0 +1,74 @@
+{
+  "destinations": [
+    {
+      "id": "1",
+      "name": "Bali",
+      "country": "Indonésie",
+      "description": "Paradis tropical avec plages magnifiques et culture riche",
+      "tags": ["beach", "culture", "nature", "food"],
+      "cost_per_day": 50,
+      "best_season": ["avril", "mai", "juin", "septembre", "octobre"],
+      "rating": 4.5
+    },
+    {
+      "id": "2",
+      "name": "Paris",
+      "country": "France",
+      "description": "La ville lumière, capitale de l'art et de la gastronomie",
+      "tags": ["culture", "food", "shopping", "history"],
+      "cost_per_day": 150,
+      "best_season": ["avril", "mai", "septembre", "octobre"],
+      "rating": 4.7
+    },
+    {
+      "id": "3",
+      "name": "Tokyo",
+      "country": "Japon",
+      "description": "Métropole futuriste alliant tradition et modernité",
+      "tags": ["food", "culture", "shopping", "technology"],
+      "cost_per_day": 120,
+      "best_season": ["mars", "avril", "octobre", "novembre"],
+      "rating": 4.6
+    },
+    {
+      "id": "4",
+      "name": "Cancún",
+      "country": "Mexique",
+      "description": "Plages de sable blanc et eaux turquoise des Caraïbes",
+      "tags": ["beach", "nature", "adventure"],
+      "cost_per_day": 80,
+      "best_season": ["décembre", "janvier", "février", "mars", "avril"],
+      "rating": 4.3
+    },
+    {
+      "id": "5",
+      "name": "Barcelone",
+      "country": "Espagne",
+      "description": "Architecture unique, plages méditerranéennes et vie nocturne animée",
+      "tags": ["beach", "food", "culture", "architecture"],
+      "cost_per_day": 100,
+      "best_season": ["mai", "juin", "septembre"],
+      "rating": 4.4
+    },
+    {
+      "id": "6",
+      "name": "New York",
+      "country": "États-Unis",
+      "description": "La ville qui ne dort jamais, centre culturel et financier mondial",
+      "tags": ["shopping", "food", "culture", "adventure"],
+      "cost_per_day": 200,
+      "best_season": ["avril", "mai", "septembre", "octobre"],
+      "rating": 4.5
+    },
+    {
+      "id": "7",
+      "name": "Phuket",
+      "country": "Thaïlande",
+      "description": "Île tropicale avec plages paradisiaques et cuisine exquise",
+      "tags": ["beach", "food", "nature", "adventure"],
+      "cost_per_day": 40,
+      "best_season": ["novembre", "décembre", "janvier", "février"],
+      "rating": 4.2
+    }
+  ]
+}
