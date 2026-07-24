@@ -1,117 +1,116 @@
-"""
-app/auth.py
-
-User registration, login, and JWT handling.
-
-Routes
-------
-POST /register  – create a new user account
-POST /login     – authenticate and return a JWT token
-"""
-import uuid
-import datetime
-
-import jwt
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
+from app.models import load_users, save_users
 
-from app.models import get_user_by_username, save_user
+auth_bp = Blueprint('auth', __name__)
 
-auth_bp = Blueprint("auth", __name__)
-
-
-# ---------------------------------------------------------------------------
-# Helper – JWT utilities
-# ---------------------------------------------------------------------------
-
-def create_token(username: str, secret: str) -> str:
-    """Return a signed JWT for *username* valid for 24 hours."""
-    now = datetime.datetime.now(datetime.timezone.utc)
-    payload = {
-        "sub": username,
-        "iat": now,
-        "exp": now + datetime.timedelta(hours=24),
-    }
-    return jwt.encode(payload, secret, algorithm="HS256")
+# Clé secrète pour JWT (en production, utilisez une variable d'environnement)
+SECRET_KEY = 'globetrotter-secret-change-in-prod'
 
 
-def decode_token(token: str, secret: str) -> dict:
-    """Decode and verify *token*. Raises jwt.PyJWTError on failure."""
-    return jwt.decode(token, secret, algorithms=["HS256"])
-
-
-def get_current_user(request_obj) -> str | None:
-    """Extract and validate the JWT from the Authorization header.
-
-    Returns the username (subject claim) or None if the token is missing /
-    invalid.
-    """
-    auth_header = request_obj.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        return None
-    token = auth_header.split(" ", 1)[1]
-    try:
-        payload = decode_token(token, current_app.config["SECRET_KEY"])
-        return payload.get("sub")
-    except jwt.PyJWTError:
-        return None
-
-
-# ---------------------------------------------------------------------------
-# Routes
-# ---------------------------------------------------------------------------
-
-@auth_bp.route("/register", methods=["POST"])
+@auth_bp.route('/register', methods=['POST'])
 def register():
-    """Register a new user.
+    """Enregistre un nouvel utilisateur"""
+    data = request.get_json()
 
-    Expected JSON body:
-        { "username": "alice", "password": "s3cr3t", "preferences": ["beach", "food"] }
+    # Validation basique
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({'error': 'Username et password requis'}), 400
 
-    Returns 201 on success, 400 on validation errors, 409 if the username is
-    already taken.
-    """
-    data = request.get_json(silent=True) or {}
-    username = data.get("username", "").strip()
-    password = data.get("password", "")
-    preferences = data.get("preferences", [])  # optional list of interest tags
+    username = data['username']
+    password = data['password']
+    preferences = data.get('preferences', [])
 
-    if not username or not password:
-        return jsonify({"error": "username and password are required"}), 400
+    # Charge les utilisateurs existants
+    users = load_users()
 
-    if get_user_by_username(username):
-        return jsonify({"error": "username already exists"}), 409
+    # Vérifie si l'utilisateur existe déjà
+    if username in users:
+        return jsonify({'error': 'Utilisateur déjà existant'}), 400
 
-    user = {
-        "id": str(uuid.uuid4()),
-        "username": username,
-        # Store a Werkzeug password hash – never store plain-text passwords.
-        "password_hash": generate_password_hash(password),
-        "preferences": preferences,
+    # Crée le nouvel utilisateur
+    users[username] = {
+        'username': username,
+        'password_hash': generate_password_hash(password),
+        'preferences': preferences,
+        'created_at': datetime.datetime.utcnow().isoformat()
     }
-    save_user(user)
-    return jsonify({"message": "user registered successfully", "username": username}), 201
+
+    # Sauvegarde
+    save_users(users)
+
+    return jsonify({
+        'message': 'Utilisateur créé avec succès',
+        'username': username
+    }), 201
 
 
-@auth_bp.route("/login", methods=["POST"])
+@auth_bp.route('/login', methods=['POST'])
 def login():
-    """Authenticate a user and return a JWT.
+    """Authentifie un utilisateur et retourne un token JWT"""
+    data = request.get_json()
 
-    Expected JSON body:
-        { "username": "alice", "password": "s3cr3t" }
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({'error': 'Username et password requis'}), 400
 
-    Returns 200 with a token on success, 400/401 on failure.
-    """
-    data = request.get_json(silent=True) or {}
-    username = data.get("username", "").strip()
-    password = data.get("password", "")
+    username = data['username']
+    password = data['password']
 
-    if not username or not password:
-        return jsonify({"error": "username and password are required"}), 400
+    # Charge les utilisateurs
+    users = load_users()
 
-    user = get_user_by_username(username)
-    if not user or not check_password_hash(user["password_hash"], password):
-        return jsonify({"error": "invalid credentials"}), 401
+    # Vérifie l'utilisateur
+    if username not in users:
+        return jsonify({'error': 'Utilisateur non trouvé'}), 401
 
-    token = create_token(username, current_app.config["SECRET_KEY"])
-    return jsonify({"token": token}), 200
+    user = users[username]
+
+    # Vérifie le mot de passe
+    if not check_password_hash(user['password_hash'], password):
+        return jsonify({'error': 'Mot de passe incorrect'}), 401
+
+    # Crée le token JWT (expire dans 24h)
+    token = jwt.encode({
+        'username': username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+    }, SECRET_KEY, algorithm='HS256')
+
+    return jsonify({
+        'message': 'Connexion réussie',
+        'token': token,
+        'username': username,
+        'preferences': user['preferences']
+    }), 200
+
+
+def token_required(f):
+    """Décorateur pour protéger les routes avec JWT"""
+    from functools import wraps
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        # Récupère le token du header Authorization
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+
+        if not token:
+            return jsonify({'error': 'Token manquant'}), 401
+
+        try:
+            # Décode le token
+            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            current_user = data['username']
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expiré'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Token invalide'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
