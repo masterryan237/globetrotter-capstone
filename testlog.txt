@@ -1,0 +1,72 @@
+(.venv) PS C:\Users\EUROPEONLINE\globetrotter-project\globetrotter-capstone> Invoke-RestMethod -Uri "http://localhost:5000/register" -Method POST -Headers @{"Content-Type"="application/json"} -Body '{"username":"alice","password":"s3cr3t","preferences":["beach","food"]}'
+
+message                      username
+-------                      --------
+Utilisateur créé avec succès alice
+
+
+(.venv) PS C:\Users\EUROPEONLINE\globetrotter-project\globetrotter-capstone> Invoke-RestMethod -Uri "http://localhost:5000/login" -Method POST -Headers @{"Content-Type"="application/json"} -Body '{"username":"alice","password":"s3cr3t"}'
+
+message           preferences   token                                                                                                                               username
+-------           -----------   -----                                                                                                                               --------
+Connexion réussie {beach, food} eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiZXhwIjoxNzg1MDAyODUzfQ._slx6M1Hnzr7TbH_sMQRzgM_Dm9Q9X4jn2oc_hvDc-0 alice
+
+
+
+(.venv) PS C:\Users\EUROPEONLINE\globetrotter-project\globetrotter-capstone> Invoke-RestMethod -Uri "http://localhost:5000/destinations?tag=beach&max_cost=100" -Method GET
+
+count destinations
+----- ------------
+    4 {@{best_season=System.Object[]; cost_per_day=50; country=Indonésie; description=Paradis tropical avec plages magnifiques et culture riche; id=1; name=Bali; rating=4,5; ta...
+
+
+(.venv) PS C:\Users\EUROPEONLINE\globetrotter-project\globetrotter-capstone> Invoke-RestMethod -Uri "http://localhost:5000/recommendations" -Method GET -Headers @{
+>>     "Authorization"="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiZXhwIjoxNzg1MDAyODUzfQ._slx6M1Hnzr7TbH_sMQRzgM_Dm9Q9X4jn2oc_hvDc-0"
+>> }
+
+count recommendations
+----- ---------------
+    7 {@{best_season=System.Object[]; cost_per_day=50; country=Indonésie; description=Paradis tropical avec plages magnifiques et culture riche; id=1; match_score=2; matching_p...
+
+
+Invoke-RestMethod `
+>> -Uri "http://localhost:5000/itineraries" `
+>> -Method POST `
+>> -Headers @{
+>>     "Content-Type"="application/json"
+>>     "Authorization"="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiZXhwIjoxNzg1MDAyODUzfQ._slx6M1Hnzr7TbH_sMQRzgM_Dm9Q9X4jn2oc_hvDc-0"
+>> } `
+>> -Body '{
+>>     "title": "Beach Escape",
+>>     "destinations": ["Bali"],
+>>     "start_date": "2025-07-01",
+>>     "end_date": "2025-07-14"
+>> }'
+
+itinerary
+---------
+@{created_at=2026-07-24T18:13:29.662246; destinations=System.Object[]; end_date=2025-07-14; id=147590b6-5c20-46a9-a988-031466193380; notes=; start_date=2025-07-01; title=Beach ...
+
+
+(.venv) PS C:\Users\EUROPEONLINE\globetrotter-project\globetrotter-capstone> Invoke-RestMethod -Uri "http://localhost:5000/itineraries" -Method GET -Headers @{
+>>     "Authorization"="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiZXhwIjoxNzg1MDAyODUzfQ._slx6M1Hnzr7TbH_sMQRzgM_Dm9Q9X4jn2oc_hvDc-0"
+>> }
+
+count itineraries
+----- -----------
+    1 {@{created_at=2026-07-24T18:13:29.662246; destinations=System.Object[]; end_date=2025-07-14; id=147590b6-5c20-46a9-a988-031466193380; notes=; start_date=2025-07-01; title...
+
+
+(.venv) PS C:\Users\EUROPEONLINE\globetrotter-project\globetrotter-capstone> Invoke-RestMethod `
+>> -Uri "http://localhost:5000/itineraries" `
+>> -Method POST `
+>> -Headers @{
+>>     "Content-Type"="application/json"
+>>     "Authorization"="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiZXhwIjoxNzg1MDAyODUzfQ._slx6M1Hnzr7TbH_sMQRzgM_Dm9Q9X4jn2oc_hvDc-0"
+>> } `
+>> -Body '{
+>>     "title": "Beach Escape",
+>>     "destinations": ["Bali"],
+>>     "start_date": "2025-07-01",
+>>     "end_date": "2025-07-14"
+>> }'
