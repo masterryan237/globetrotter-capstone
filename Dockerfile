@@ -1,20 +1,25 @@
-# Use an official lightweight Python runtime as the base image
+# Image Python officielle
 FROM python:3.9-slim
 
-# Set a working directory inside the container
-WORKDIR /globetrotter
+# Définit le répertoire de travail
+WORKDIR /app
 
-# Copy dependency file first to leverage Docker layer caching
+# Copie les dépendances
 COPY requirements.txt .
 
-# Install dependencies
+# Installe les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application source code
-COPY . .
+# Copie le code source
+COPY app/ ./app/
+COPY data/ ./data/
 
-# Expose the port the app runs on
+# Expose le port
 EXPOSE 5000
 
-# Run the application
+# Définit les variables d'environnement
+ENV FLASK_DEBUG=0
+ENV PORT=5000
+
+# Commande pour lancer l'application
 CMD ["python", "app/main.py"]
